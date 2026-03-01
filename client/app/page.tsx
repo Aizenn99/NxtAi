@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mic, Paperclip, Send, UserCircle, Menu, Settings, Code, Image as ImageIcon, Video, Music, FileText } from "lucide-react";
+import { Mic, Paperclip, Send, UserCircle, Settings, Code, Image as ImageIcon, Video, Music, FileText } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Home() {
   // Placeholder authentication state
@@ -29,18 +31,18 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col font-geist-mono h-screen w-full bg-black text-foreground overflow-hidden">
-      {/* ... [Header and Main Content Area - kept exactly the same to avoid unnecessary diffs] ... */}
-      {/* Top Navigation Bar */}
-      <header className="flex justify-between items-center p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="w-6 h-6" />
-          </Button>
-          <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            NxtAi
-          </div>
-        </div>
+    <>
+      <AppSidebar />
+      <SidebarInset className="bg-black">
+        <div className="flex flex-col font-geist-mono h-screen w-full text-foreground overflow-hidden">
+          {/* Top Navigation Bar */}
+          <header className="flex justify-between items-center p-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+              <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                NxtAi
+              </div>
+            </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" className="hidden md:flex">Settings</Button>
           <Button variant="ghost" className="hidden md:flex">Help</Button>
@@ -124,5 +126,7 @@ export default function Home() {
         </div>
       </main>
     </div>
+      </SidebarInset>
+    </>
   );
 }

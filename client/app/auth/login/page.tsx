@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 
 const LoginAI = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black font-mono">
+    <div className="w-full flex items-center justify-center bg-black font-mono">
       
       {/* Card */}
       <div className="w-[380px] p-8 rounded-2xl bg-muted/50 shadow-xl border border-border">
         
         {/* Heading */}
         <h1 className="text-2xl text-center text-foreground mb-6">
-          Login <span className="">NxtAi</span>
+          Login <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">NxtAi</span>
         </h1>
 
         {/* Form */}
@@ -23,7 +23,7 @@ const LoginAI = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className="px-4 py-1 rounded-lg bg-muted/50 border border-border 
+              className="px-4 py-2 rounded-lg bg-muted/50 border border-border 
                          focus:outline-none  focus:ring-1 focus:ring-ring 
                          text-foreground"
             />
@@ -37,7 +37,7 @@ const LoginAI = () => {
             <input
               type="password"
               placeholder="Enter your password"
-              className="px-4 py-1 rounded-lg bg-muted/50 border border-border 
+              className="px-4 py-2 rounded-lg bg-muted/50 border border-border 
                          focus:outline-none focus:ring-1 focus:ring-ring 
                          text-foreground"
             />
