@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { Message } from "@/app/store/chat-slice/chat";
 import { Bot, Copy, Check } from "lucide-react";
 import { useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -21,7 +23,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 
   return (
     <div className="relative my-2 rounded-xl overflow-hidden border border-white/10">
-      <div className="flex items-center justify-between bg-white/5 px-4 py-1.5">
+      <div className="flex items-center justify-between bg-[#1e1e1e] px-4 py-1.5">
         <span className="text-xs text-muted-foreground font-mono">
           {lang ?? "code"}
         </span>
@@ -37,9 +39,22 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 text-sm bg-black/40 text-slate-200">
-        <code>{code}</code>
-      </pre>
+      <SyntaxHighlighter
+        language={lang || "text"}
+        style={vscDarkPlus}
+        customStyle={{
+          margin: 0,
+          borderRadius: 0,
+          fontSize: "0.85rem",
+          lineHeight: "1.6",
+          background: "#1e1e1e",
+        }}
+        showLineNumbers
+        lineNumberStyle={{ color: "#555", minWidth: "2.5em" }}
+        wrapLongLines={false}
+      >
+        {code}
+      </SyntaxHighlighter>
     </div>
   );
 }

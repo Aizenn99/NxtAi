@@ -16,6 +16,7 @@ import {
   Square,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -33,21 +34,36 @@ import {
   sendChatMessage,
   selectMessages,
   selectIsLoading,
+  selectCurrentChat,
 } from "@/app/store/chat-slice/chat";
 import { ChatMessages } from "@/components/ChatMessages";
 
 const SUGGESTIONS = [
-  { icon: <Code className="w-6 h-6 text-blue-400" />, text: "Write a React component" },
-  { icon: <ImageIcon className="w-6 h-6 text-purple-400" />, text: "Generate a logo concept" },
-  { icon: <Video className="w-6 h-6 text-green-400" />, text: "Create a short video script" },
-  { icon: <FileText className="w-6 h-6 text-orange-400" />, text: "Draft a project proposal" },
+  {
+    icon: <Code className="w-6 h-6 text-blue-400" />,
+    text: "Write a React component",
+  },
+  {
+    icon: <ImageIcon className="w-6 h-6 text-purple-400" />,
+    text: "Generate a logo concept",
+  },
+  {
+    icon: <Video className="w-6 h-6 text-green-400" />,
+    text: "Create a short video script",
+  },
+  {
+    icon: <FileText className="w-6 h-6 text-orange-400" />,
+    text: "Draft a project proposal",
+  },
 ];
 
 export default function Home() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { isAuthenticated, user } = useSelector((state: any) => state.auth);
   const messages = useSelector(selectMessages);
   const isLoading = useSelector(selectIsLoading);
+  const currentChat = useSelector(selectCurrentChat);
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -70,6 +86,10 @@ export default function Home() {
   const handleSend = (text = input) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
+    if (!isAuthenticated) {
+      router.push("/auth/login");
+      return;
+    }
     resetTextarea();
     dispatch(sendChatMessage(trimmed) as any);
   };
@@ -85,8 +105,17 @@ export default function Home() {
 
   return (
     <>
-      <AppSidebar onNewChat={() => dispatch(startNewChat())} />
-      <SidebarInset className="bg-black">
+      <AppSidebar
+        onNewChat={() => {
+          // Only create a new chat if the current chat has been used
+          const currentHasMessages =
+            currentChat && currentChat.messages.length > 0;
+          if (currentHasMessages || !currentChat) {
+            dispatch(startNewChat());
+          }
+        }}
+      />
+      <SidebarInset className="bg-black cursor-pointer">
         <div className="flex flex-col font-geist-mono h-screen w-full text-foreground overflow-hidden">
           {/* Header */}
           <header className="flex justify-between items-center p-4 shrink-0">
@@ -165,7 +194,7 @@ export default function Home() {
             )}
 
             {/* Input Bar */}
-            <div className="w-full max-w-3xl absolute bottom-8 px-4 bg-black pb-2">
+            <div className="w-full max-w-3xl absolute md:mr-4  bottom-0 py-4 px-4 bg-black rounded-xl">
               <div className="relative flex items-end rounded-3xl border bg-muted/30 shadow-sm p-1 pr-4 transition-all focus-within:ring-1 focus-within:ring-border focus-within:bg-muted/50">
                 <Button
                   variant="ghost"
@@ -194,7 +223,9 @@ export default function Home() {
                   {isLoading ? (
                     <Button
                       size="icon"
-                      onClick={() => {/* stop not supported with thunk, but UI shows correctly */}}
+                      onClick={() => {
+                        /* stop not supported with thunk, but UI shows correctly */
+                      }}
                       className="rounded-full cursor-pointer bg-foreground text-background hover:bg-foreground/90"
                     >
                       <Square className="w-4 h-4 fill-current" />
@@ -212,7 +243,8 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-xs text-center text-muted-foreground mt-3">
-                NxtAi may display inaccurate info, so double-check its responses.
+                NxtAi may display inaccurate info, so double-check its
+                responses.
               </p>
             </div>
           </main>
