@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "@/app/store/auth-slice/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { AppDispatch } from "@/app/store/store"; // adjust path if needed
+import type { Dispatch } from "@reduxjs/toolkit";
 
 type FormDataType = {
   email: string;
@@ -18,7 +18,7 @@ const LoginAI = () => {
     email: "",
     password: "",
   });
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<any>();
   const router = useRouter();
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {

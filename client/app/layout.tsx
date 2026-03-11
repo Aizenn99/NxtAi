@@ -1,11 +1,11 @@
 "use client";
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { Toaster } from "@/components/ui/sonner";
+import AuthProvider from "./common/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +28,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Provider store={store}>
-          <SidebarProvider defaultOpen={false}>{children}</SidebarProvider>
+          <SidebarProvider defaultOpen={false}>
+            <AuthProvider>{children}</AuthProvider>
+          </SidebarProvider>
         </Provider>
         <Toaster />
       </body>
