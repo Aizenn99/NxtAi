@@ -1,15 +1,24 @@
 const mongoose = require("mongoose");
 
-const chatHist = [
-  {
-    chatId: String,
-    messages: [
-      {
-        role: String,
-        content: String,
-      },
-    ],
+const chatHistorySchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-];
+  chats: [
+    {
+      id: { type: String, required: true },
+      title: { type: String, default: "New Chat" },
+      messages: [
+        {
+          role: { type: String, enum: ["user", "assistant"], required: true },
+          content: { type: String, required: true },
+          timestamp: { type: Number },
+        },
+      ],
+    },
+  ],
+});
 
-module.exports = chatHist;
+module.exports = mongoose.model("ChatHistory", chatHistorySchema);

@@ -31,6 +31,7 @@ mongoose
   });
 
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/chathistory", require("./routes/chathistory"));
 app.use("/api/chat", require("./routes/chat"));
 
 app.listen(PORT, () => {

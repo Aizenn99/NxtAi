@@ -86,7 +86,7 @@ function AssistantContent({ content }: { content: string }) {
                 </code>
               ) : (
                 seg
-              )
+              ),
             )}
           </p>
         );
@@ -124,7 +124,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   }, [messages, isLoading]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="flex-1 w-full overflow-y-auto px-4 pt-6 pb-36 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {messages.map((msg) => {
         if (msg.role === "user") {
           return (
@@ -141,7 +141,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
-            <div className="max-w-[85%] text-sm text-foreground">
+            <div className="max-w-[85%] overflow-x-auto text-sm text-foreground">
               <AssistantContent content={msg.content} />
             </div>
           </div>

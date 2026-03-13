@@ -1,4 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import axios from "axios";
+
+// Using NEXT_PUBLIC_API_URL for Next.js app
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export interface Message {
   id: string;
@@ -58,6 +62,14 @@ const chatSlice = createSlice({
       }
     },
 
+    setChats(state, action: PayloadAction<Chat[]>) {
+      state.chats = action.payload;
+      // If there's no active chat but they have history, load the newest one
+      if (state.chats.length > 0 && !state.currentChatId) {
+        state.currentChatId = state.chats[state.chats.length - 1].id;
+      }
+    },
+
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
@@ -75,6 +87,7 @@ const chatSlice = createSlice({
 export const {
   startNewChat,
   addMessage,
+  setChats,
   setLoading,
   switchChat,
   clearCurrentChat,
@@ -96,6 +109,40 @@ export const selectChats = (state: { chat: ChatState }) => state.chat.chats;
 
 export const selectCurrentChatId = (state: { chat: ChatState }) =>
   state.chat.currentChatId;
+
+// Database sync thunks
+export const fetchChatHistory = createAsyncThunk(
+  "chat/fetchHistory",
+  async (_, { dispatch }) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/chathistory`, {
+        withCredentials: true,
+      });
+      // response.data holds the `.chats` array
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        dispatch(setChats(response.data));
+      }
+    } catch (error) {
+      console.error("Error fetching chat history from DB:", error);
+    }
+  }
+);
+
+export const syncChatHistory = createAsyncThunk(
+  "chat/syncHistory",
+  async (_, { getState }) => {
+    try {
+      const state = getState() as { chat: ChatState };
+      await axios.post(
+        `${API_URL}/api/chathistory`,
+        { chats: state.chat.chats },
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Error saving chat history to DB:", error);
+    }
+  }
+);
 
 // Async thunk — orchestrates the full send flow
 export const sendChatMessage = createAsyncThunk(
@@ -161,6 +208,8 @@ export const sendChatMessage = createAsyncThunk(
       );
     } finally {
       dispatch(setLoading(false));
+      // Once both messages have landed, push the full store updates to MongoDB
+      dispatch(syncChatHistory());
     }
   }
 );

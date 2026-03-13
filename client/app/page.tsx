@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { useSelector, useDispatch } from "react-redux";
@@ -35,6 +35,7 @@ import {
   selectMessages,
   selectIsLoading,
   selectCurrentChat,
+  fetchChatHistory,
 } from "@/app/store/chat-slice/chat";
 import { ChatMessages } from "@/components/ChatMessages";
 
@@ -67,6 +68,12 @@ export default function Home() {
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchChatHistory() as any);
+    }
+  }, [dispatch, isAuthenticated]);
 
   const resetTextarea = () => {
     setInput("");
