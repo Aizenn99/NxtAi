@@ -36,6 +36,8 @@ import {
   selectIsLoading,
   selectCurrentChat,
   fetchChatHistory,
+  selectSelectedModel,
+  setSelectedModel,
 } from "@/app/store/chat-slice/chat";
 import { logoutUser } from "@/app/store/auth-slice/auth";
 import { ChatMessages } from "@/components/ChatMessages";
@@ -59,6 +61,13 @@ const SUGGESTIONS = [
   },
 ];
 
+const MODELS = [
+  { id: "llama-3.3-70b-versatile", name: "Groq (Llama 3)" },
+  { id: "deepseek", name: "DeepSeek" },
+  { id: "cohere", name: "Cohere" },
+  { id: "openrouter", name: "OpenRouter" },
+];
+
 export default function Home() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -66,6 +75,7 @@ export default function Home() {
   const messages = useSelector(selectMessages);
   const isLoading = useSelector(selectIsLoading);
   const currentChat = useSelector(selectCurrentChat);
+  const selectedModel = useSelector(selectSelectedModel);
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -147,6 +157,31 @@ export default function Home() {
               <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 NxtAi
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-8 gap-1 font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {MODELS.find((m) => m.id === selectedModel)?.name ||
+                      "Select Model"}
+                    <span className="text-xs opacity-50">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[200px]">
+                  <DropdownMenuLabel>Select Model</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {MODELS.map((model) => (
+                    <DropdownMenuItem
+                      key={model.id}
+                      onClick={() => dispatch(setSelectedModel(model.id))}
+                      className={selectedModel === model.id ? "bg-muted" : ""}
+                    >
+                      {model.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="flex items-center gap-2">
               {isAuthenticated ? (
@@ -231,9 +266,30 @@ export default function Home() {
                   variant="ghost"
                   size="icon"
                   className="mb-0.5 cursor-pointer rounded-full text-muted-foreground hover:text-foreground shrink-0"
+                  title="Attach File / Media"
                 >
                   <Paperclip className="w-5 h-5" />
                 </Button>
+                <div className="flex items-center justify-center mb-1 gap-1 mx-2 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    title="Generate Image"
+                    onClick={() => setInput((prev) => prev + "/image ")}
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    title="Generate Video"
+                    onClick={() => setInput((prev) => prev + "/video ")}
+                  >
+                    <Video className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Textarea
                   ref={textareaRef}
                   value={input}

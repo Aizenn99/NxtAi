@@ -21,6 +21,7 @@ interface ChatState {
   currentChatId: string | null;
   chats: Chat[];
   isLoading: boolean;
+  selectedModel: string;
 }
 
 const generateId = () => {
@@ -39,6 +40,7 @@ const initialState: ChatState = {
   currentChatId: getInitialChatId(),
   chats: [],
   isLoading: false,
+  selectedModel: "llama-3.3-70b-versatile", // Default to Groq's Llama
 };
 
 const chatSlice = createSlice({
@@ -104,6 +106,10 @@ const chatSlice = createSlice({
         localStorage.removeItem("currentChatId");
       }
     },
+
+    setSelectedModel(state, action: PayloadAction<string>) {
+      state.selectedModel = action.payload;
+    },
   },
 });
 
@@ -114,6 +120,7 @@ export const {
   setLoading,
   switchChat,
   clearCurrentChat,
+  setSelectedModel,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
@@ -132,6 +139,9 @@ export const selectChats = (state: { chat: ChatState }) => state.chat.chats;
 
 export const selectCurrentChatId = (state: { chat: ChatState }) =>
   state.chat.currentChatId;
+
+export const selectSelectedModel = (state: { chat: ChatState }) =>
+  state.chat.selectedModel;
 
 // Database sync thunks
 export const fetchChatHistory = createAsyncThunk(
@@ -201,7 +211,10 @@ export const sendChatMessage = createAsyncThunk(
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ 
+          messages: history,
+          model: state.chat.selectedModel 
+        }),
       });
 
       const data = await res.json();

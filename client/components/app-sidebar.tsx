@@ -96,15 +96,6 @@ export function AppSidebar({ onNewChat }: AppSidebarProps) {
               variant="default"
               className="w-full justify-start gap-3 rounded-xl px-3 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <History className="h-4 w-4 shrink-0" />
-              <span>Activity</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              variant="default"
-              className="w-full justify-start gap-3 rounded-xl px-3 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-            >
               <Settings className="h-4 w-4 shrink-0" />
               <span>Settings</span>
             </SidebarMenuButton>

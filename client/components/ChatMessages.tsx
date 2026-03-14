@@ -72,22 +72,49 @@ function AssistantContent({ content }: { content: string }) {
           const code = lines.slice(1).join("\n");
           return <CodeBlock key={i} code={code} lang={lang || undefined} />;
         }
-        // Render inline `code` spans and line breaks
-        const segments = part.split(/(`[^`]+`)/g);
+        // Render inline `code` spans, line breaks, and images/videos
+        // Split by code or by images
+        const segments = part.split(/(`[^`]+`|!\[[^\]]*\]\([^)]+\))/g);
         return (
           <p key={i} className="whitespace-pre-wrap leading-relaxed">
-            {segments.map((seg, j) =>
-              seg.startsWith("`") && seg.endsWith("`") ? (
-                <code
-                  key={j}
-                  className="bg-white/10 rounded px-1 py-0.5 text-sm font-mono text-blue-300"
-                >
-                  {seg.slice(1, -1)}
-                </code>
-              ) : (
-                seg
-              ),
-            )}
+            {segments.map((seg, j) => {
+              if (seg.startsWith("`") && seg.endsWith("`")) {
+                return (
+                  <code
+                    key={j}
+                    className="bg-white/10 rounded px-1 py-0.5 text-sm font-mono text-blue-300"
+                  >
+                    {seg.slice(1, -1)}
+                  </code>
+                );
+              } else if (seg.startsWith("![") && seg.endsWith(")")) {
+                const match = seg.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+                if (match) {
+                  const alt = match[1];
+                  const url = match[2];
+                  if (alt.startsWith("video:")) {
+                    return (
+                      <video
+                        key={j}
+                        src={url}
+                        controls
+                        className="rounded-lg max-w-md w-full my-4 shadow-lg border border-white/10"
+                      />
+                    );
+                  }
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={j}
+                      src={url}
+                      alt={alt}
+                      className="rounded-lg max-w-md w-full my-4 shadow-lg border border-white/10"
+                    />
+                  );
+                }
+              }
+              return seg;
+            })}
           </p>
         );
       })}
@@ -98,7 +125,7 @@ function AssistantContent({ content }: { content: string }) {
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
         <Bot className="w-4 h-4 text-white" />
       </div>
       <div className="bg-muted/40 border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
@@ -138,7 +165,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
 
         return (
           <div key={msg.id} className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="max-w-[85%] overflow-x-auto text-sm text-foreground">
