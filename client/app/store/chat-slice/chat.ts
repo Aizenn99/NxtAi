@@ -162,7 +162,7 @@ export const fetchChatHistory = createAsyncThunk(
         withCredentials: true,
       });
       // response.data holds the `.chats` array
-      if (Array.isArray(response.data) && response.data.length > 0) {
+      if (Array.isArray(response.data)) {
         dispatch(setChats(response.data));
       }
     } catch (error) {

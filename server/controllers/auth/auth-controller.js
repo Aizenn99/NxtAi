@@ -95,6 +95,7 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          credits: user.credits,
         },
       });
   } catch (error) {
@@ -145,7 +146,12 @@ const checkAuth = async (req, res) => {
       .json({
         success: true,
         message: "Authenticated",
-        user,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          credits: user.credits,
+        },
       });
   } catch (error) {
     console.error(error);
