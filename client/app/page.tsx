@@ -167,7 +167,7 @@ export default function Home() {
                     <span className="text-xs opacity-50">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
+                <DropdownMenuContent align="start" className="w-[180px]">
                   <DropdownMenuLabel>Select Model</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {MODELS.map((model) => (
@@ -184,9 +184,14 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-2">
               {isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Avatar className="w-9 h-9 ml-2 cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/50 bg-transparent">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground bg-muted/30 px-3 py-1 rounded-full border shadow-sm">
+                    <span className="text-primary">✨</span>
+                    {user?.credits ?? 0} Credits
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/50 bg-transparent">
                       <AvatarImage src="" />
                       <AvatarFallback className="bg-transparent text-foreground border border-border">
                         {user?.name ? (
@@ -204,7 +209,12 @@ export default function Home() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>Settings</DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href="/help" className="w-full cursor-pointer">Help</Link>
+                            <Link
+                              href="/help"
+                              className="w-full cursor-pointer"
+                            >
+                              Help
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <div
@@ -222,6 +232,7 @@ export default function Home() {
                     </Avatar>
                   </DropdownMenuTrigger>
                 </DropdownMenu>
+                </div>
               ) : (
                 <Button variant="outline" asChild className="ml-2">
                   <Link href="/auth/login">Login</Link>

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
+import { updateCredits, logoutUser } from "../auth-slice/auth";
 
 // Using NEXT_PUBLIC_API_URL for Next.js app
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -111,6 +112,15 @@ const chatSlice = createSlice({
       state.selectedModel = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(logoutUser.fulfilled, (state) => {
+      state.chats = [];
+      state.currentChatId = null;
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("currentChatId");
+      }
+    });
+  },
 });
 
 export const {
@@ -219,6 +229,10 @@ export const sendChatMessage = createAsyncThunk(
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "API error");
+
+      if (data.remainingCredits !== undefined) {
+        dispatch(updateCredits(data.remainingCredits));
+      }
 
       dispatch(
         addMessage({

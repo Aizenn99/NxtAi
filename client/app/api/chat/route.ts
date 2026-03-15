@@ -12,6 +12,35 @@ export async function POST(req: NextRequest) {
     const lastMessage = messages[messages.length - 1];
     const userMessageContent = lastMessage.content;
 
+    // --- Deduct Credits through Backend ---
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized: No token" }, { status: 401 });
+    }
+
+    let feature = "chat";
+    if (userMessageContent.startsWith("/image ")) feature = "image";
+    else if (userMessageContent.startsWith("/video ")) feature = "video";
+    // ppt logic not fully in here yet, but prepared
+
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const deductRes = await fetch(`${backendUrl}/api/auth/deduct`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Cookie": `token=${token}`
+      },
+      body: JSON.stringify({ feature })
+    });
+
+    if (!deductRes.ok) {
+      const errData = await deductRes.json().catch(() => ({}));
+      return NextResponse.json({ error: errData.message || "Insufficient credits" }, { status: deductRes.status });
+    }
+
+    const { remainingCredits } = await deductRes.json();
+    // --------------------------------------
+
     // Placholder Logic for Media Generation Tools
     if (userMessageContent.startsWith("/image ")) {
       const prompt = userMessageContent.replace("/image ", "").trim();
@@ -37,7 +66,7 @@ export async function POST(req: NextRequest) {
       const base64 = Buffer.from(buffer).toString("base64");
       const imageUrl = `data:image/jpeg;base64,${base64}`;
 
-      return NextResponse.json({ reply: `Here is your generated image:\n\n![${prompt}](${imageUrl})` });
+      return NextResponse.json({ reply: `Here is your generated image:\n\n![${prompt}](${imageUrl})`, remainingCredits });
     }
     
     if (userMessageContent.startsWith("/video ")) {
@@ -65,7 +94,7 @@ export async function POST(req: NextRequest) {
       const data = await falRes.json();
       const videoUrl = data.video?.url || data.url;
 
-      return NextResponse.json({ reply: `Here is your generated video:\n\n![video:${prompt}](${videoUrl})` });
+      return NextResponse.json({ reply: `Here is your generated video:\n\n![video:${prompt}](${videoUrl})`, remainingCredits });
     }
 
     // Default to Groq Llama 3 API if no model specified
@@ -99,7 +128,7 @@ export async function POST(req: NextRequest) {
       const textContent = (response.message?.content as any)?.[0]?.text;
       const reply = textContent || String(response.message?.content || "");
       
-      return NextResponse.json({ reply });
+      return NextResponse.json({ reply, remainingCredits });
     }
 
     let apiUrl = "";
@@ -160,7 +189,7 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content || "";
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, remainingCredits });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

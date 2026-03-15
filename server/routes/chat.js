@@ -1,21 +1,20 @@
 const express = require("express");
 const Groq = require("groq-sdk");
+const authMiddleware = require("../middleware/authMiddleware");
+const checkCredits = require("../middleware/creditCheck");
 
 const router = express.Router();
 
-// POST /api/chat
-router.post("/", async (req, res) => {
+// POST /api/chat  — costs 1 credit per message
+router.post("/", authMiddleware, checkCredits("chat"), async (req, res) => {
   try {
-    const apiKey = process.env.GROQ_API_KEY;
-    console.log("[chat] Using GROQ_API_KEY:", apiKey ? apiKey.substring(0, 10) + "..." : "UNDEFINED");
-
-    const groq = new Groq({ apiKey });
-
     const { messages } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "messages array is required" });
     }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
@@ -32,7 +31,11 @@ router.post("/", async (req, res) => {
     });
 
     const reply = completion.choices[0]?.message?.content ?? "";
-    return res.json({ reply });
+
+    return res.json({
+      reply,
+      remainingCredits: req.remainingCredits, // set by checkCredits middleware
+    });
   } catch (err) {
     console.error("Groq API error:", err.message);
     return res.status(500).json({ error: err.message ?? "Internal server error" });
@@ -40,4 +43,3 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
-

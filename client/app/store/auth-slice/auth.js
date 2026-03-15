@@ -102,6 +102,11 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    updateCredits: (state, action) => {
+      if (state.user) {
+        state.user.credits = action.payload;
+      }
+    },
   },
 
   extraReducers: (builder) => {
@@ -164,5 +169,7 @@ const authSlice = createSlice({
       });
   },
 });
+
+export const { logout, updateCredits } = authSlice.actions;
 
 export default authSlice.reducer;
