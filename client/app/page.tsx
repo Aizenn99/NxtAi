@@ -167,14 +167,21 @@ export default function Home() {
                     <span className="text-xs opacity-50">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[180px]">
+                <DropdownMenuContent
+                  align="start"
+                  className="w-[180px] rounded-2xl "
+                >
                   <DropdownMenuLabel>Select Model</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {MODELS.map((model) => (
                     <DropdownMenuItem
                       key={model.id}
                       onClick={() => dispatch(setSelectedModel(model.id))}
-                      className={selectedModel === model.id ? "bg-muted" : ""}
+                      className={
+                        selectedModel === model.id
+                          ? "bg-muted rounded-xl bg-white/10"
+                          : "cursor-pointer"
+                      }
                     >
                       {model.name}
                     </DropdownMenuItem>
@@ -191,9 +198,22 @@ export default function Home() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Avatar className="w-9 h-9 cursor-pointer">
-                        <AvatarFallback>
-                          {user?.name?.charAt(0).toUpperCase()}
+                      <Avatar
+                        className="w-9 h-9 cursor-pointer transition-all duration-200
+  bg-muted/40 backdrop-blur-sm
+  ring-1 ring-border
+  hover:ring-primary/60
+  hover:bg-muted/60
+  hover:shadow-md hover:shadow-primary/20
+  active:scale-95"
+                      >
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-transparent text-foreground font-medium">
+                          {user?.name ? (
+                            user.name.charAt(0).toUpperCase()
+                          ) : (
+                            <UserCircle className="w-6 h-6 text-muted-foreground" />
+                          )}
                         </AvatarFallback>
                       </Avatar>
                     </DropdownMenuTrigger>
@@ -209,9 +229,14 @@ export default function Home() {
 
                       <DropdownMenuSeparator />
 
-                      <DropdownMenuItem>Settings</DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer rounded-xl hover:bg-white/10">
+                        Settings
+                      </DropdownMenuItem>
 
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem
+                        asChild
+                        className="cursor-pointer rounded-xl hover:bg-white/10"
+                      >
                         <Link href="/help">Help</Link>
                       </DropdownMenuItem>
 

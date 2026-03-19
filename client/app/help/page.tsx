@@ -21,186 +21,185 @@ import {
 
 export default function HelpPage() {
   return (
-    <div className="w-full md:p-6 p-2 bg-black text-foreground font-geist-mono selection:bg-purple-500/30">
-      <div className=" mx-auto px-6 py-12 space-y-16">
+    <div className="min-h-screen w-full bg-gradient-to-b from-black via-neutral-950 to-black text-white font-geist-mono selection:bg-purple-500/30">
+      {/* ✅ FIXED CONTAINER */}
+      <div className="max-w-7xl w-full mx-auto px-6 md:px-10 py-12 space-y-20">
         {/* Header */}
-        <header className="space-y-4">
+        <header className="space-y-6 max-w-3xl">
           <Button
             variant="ghost"
             asChild
-            className="mb-8 hover:bg-white/5 -ml-4"
+            className="mb-4 hover:bg-white/5 -ml-2 transition"
           >
-            <Link href="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Link href="/" className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
               Back to Chat
             </Link>
           </Button>
-          <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">
+
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight bg-gradient-to-r from-blue-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">
             Help & Documentation
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
-            Everything you need to know about navigating NxtAi, utilizing our
-            distinct AI models, and understanding how your data is handled.
+
+          <p className="text-gray-400 text-lg">
+            Everything you need to know about navigating NxtAi, using AI models,
+            and understanding your data.
           </p>
         </header>
 
         {/* Models Section */}
-        <section className="space-y-6">
+        <section className="space-y-10">
           <div className="flex items-center gap-3">
             <Sparkles className="w-6 h-6 text-purple-400" />
-            <h2 className="text-2xl font-semibold">
-              Which Model should I use?
+            <h2 className="text-3xl font-semibold">
+              Which Model Should I Use?
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-muted/30 border-white/5">
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-5 h-5 text-orange-400" />
-                  <CardTitle>Groq (Llama 3)</CardTitle>
-                </div>
-                <CardDescription>Best for Speed & General Chat</CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>
-                  Running on Groq's lightning-fast hardware, Llama 3 excels at
-                  everyday questions, coding assistance, and instantaneous
-                  back-and-forth dialogue.
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
-                  <li>Near-instant response times</li>
-                  <li>Great for coding and creative writing</li>
-                </ul>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-muted/30 border-white/5">
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <BrainCircuit className="w-5 h-5 text-blue-400" />
-                  <CardTitle>Cohere (Command-A)</CardTitle>
-                </div>
-                <CardDescription>
-                  Best for Complex Reasoning & RAG
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>
-                  Cohere's models are heavily trained for enterprise tasks,
-                  following incredibly specific instructions, and executing
-                  rigorous logic.
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
-                  <li>Strong instruction following</li>
-                  <li>Excellent at summarizing large texts</li>
-                </ul>
-              </CardContent>
-            </Card>
+          {/* ✅ GRID FIXED */}
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
+            {[
+              {
+                icon: Zap,
+                color: "text-orange-400",
+                title: "Groq (Llama 3)",
+                description: "Best for Speed & General Chat",
+                content: (
+                  <>
+                    <p>
+                      Lightning-fast responses for chat, coding, and quick
+                      tasks.
+                    </p>
+                    <ul className="list-disc list-inside mt-2 text-sm space-y-1">
+                      <li>Instant responses</li>
+                      <li>Great for coding & writing</li>
+                    </ul>
+                  </>
+                ),
+              },
+              {
+                icon: BrainCircuit,
+                color: "text-blue-400",
+                title: "Cohere (Command-A)",
+                description: "Best for Reasoning",
+                content: (
+                  <>
+                    <p>
+                      Ideal for structured outputs, logic, and summarization.
+                    </p>
+                    <ul className="list-disc list-inside mt-2 text-sm space-y-1">
+                      <li>Strong instruction following</li>
+                      <li>Great for long text tasks</li>
+                    </ul>
+                  </>
+                ),
+              },
+              {
+                icon: ImageIcon,
+                color: "text-pink-400",
+                title: "Hugging Face",
+                description: "Text-to-Image",
+                content: (
+                  <p>
+                    Use{" "}
+                    <code className="bg-white/10 px-2 py-1 rounded text-sm">
+                      /image
+                    </code>{" "}
+                    to generate images.
+                  </p>
+                ),
+              },
+              {
+                icon: Video,
+                color: "text-green-400",
+                title: "Fal AI (Kling)",
+                description: "Text-to-Video",
+                content: (
+                  <p>
+                    Use{" "}
+                    <code className="bg-white/10 px-2 py-1 rounded text-sm">
+                      /video
+                    </code>{" "}
+                    to create videos.
+                  </p>
+                ),
+              },
+            ].map(
+              ({ icon: Icon, color, title, description, content }, index) => (
+                <Card
+                  key={index}
+                  className="group bg-white/[0.03] border border-white/10 backdrop-blur-xl
+                  hover:bg-white/[0.05] hover:border-white/20
+                  transition-all duration-300 rounded-2xl"
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition">
+                        <Icon className={`w-5 h-5 ${color}`} />
+                      </div>
+                      <CardTitle className="text-lg">{title}</CardTitle>
+                    </div>
+                    <CardDescription className="text-gray-400">
+                      {description}
+                    </CardDescription>
+                  </CardHeader>
 
-            <Card className="bg-muted/30 border-white/5">
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <ImageIcon className="w-5 h-5 text-pink-400" />
-                  <CardTitle>Hugging Face (Vision)</CardTitle>
-                </div>
-                <CardDescription>Best for Text-to-Image</CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>
-                  NxtAi connects to Stable Diffusion XL via Hugging Face. To
-                  generate an image, simply start your message with{" "}
-                  <code className="bg-white/10 px-1 py-0.5 rounded">
-                    /image
-                  </code>{" "}
-                  and type your prompt.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-muted/30 border-white/5">
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <Video className="w-5 h-5 text-green-400" />
-                  <CardTitle>Fal AI (Kling)</CardTitle>
-                </div>
-                <CardDescription>Best for Text-to-Video</CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>
-                  NxtAi leverages Kling Video models via Fal AI. To generate a
-                  short video, start your message with{" "}
-                  <code className="bg-white/10 px-1 py-0.5 rounded">
-                    /video
-                  </code>{" "}
-                  and type your scene description.
-                </p>
-              </CardContent>
-            </Card>
+                  <CardContent className="text-gray-300 text-sm">
+                    {content}
+                  </CardContent>
+                </Card>
+              ),
+            )}
           </div>
         </section>
 
-        {/* Privacy Policy Section */}
-        <section className="space-y-6 pt-8 border-t border-white/10">
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        {/* Privacy Section */}
+        <section className="space-y-10 max-w-4xl">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-6 h-6 text-red-400" />
-            <h2 className="text-2xl font-semibold">Privacy Policy</h2>
+            <h2 className="text-3xl font-semibold">Privacy Policy</h2>
           </div>
-          <div className="prose prose-invert max-w-none text-sm text-muted-foreground space-y-6">
-            <p>
-              At NxtAi, we prioritize your security and data transparency.
-              Because this application acts as an aggregator for various
-              third-party AI models (Groq, Cohere, DeepSeek, OpenRouter, Fal-AI,
-              and Hugging Face), it is important to understand how your data
-              flows.
-            </p>
 
-            <div>
-              <h3 className="text-foreground text-lg font-medium mb-2">
-                1. Local Credentials
-              </h3>
-              <p>
-                Your API Keys remain entirely under your control. The NxtAi
-                server processes them securely via environment variables to
-                fulfill server-side API requests, preventing your keys from
-                being exposed to the client-side browser.
-              </p>
-            </div>
+          <p className="text-gray-400">
+            NxtAi prioritizes security and transparency. Your data flows through
+            selected AI providers based on your chosen model.
+          </p>
 
-            <div>
-              <h3 className="text-foreground text-lg font-medium mb-2">
-                2. Chat History & Database
-              </h3>
-              <p>
-                Your chat logs and history are saved to your configured MongoDB
-                database. This allows NxtAi to sync your conversations across
-                devices ensuring you never lose context.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-foreground text-lg font-medium mb-2">
-                3. Third-Party Data Processing
-              </h3>
-              <p>
-                When you submit a prompt to NxtAi, that text is sent directly to
-                the model provider you have currently selected. They process the
-                prompt to stream a response back to you.
-                <br />
-                <br />
-                <strong>Please Note:</strong> Your chat data is subject to the
-                respective privacy policies of these providers. Some providers
-                may retain logs for 30 days for abuse monitoring, while others
-                explicitly do not train on API data. We recommend reviewing the
-                standard API Privacy Agreements from Groq, Cohere, DeepSeek,
-                OpenRouter, Fal-AI, and HuggingFace for complete assurance
-                regarding model training practices.
-              </p>
-            </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                title: "Local Credentials",
+                content:
+                  "Your API keys are securely handled on the server and never exposed to the browser.",
+              },
+              {
+                title: "Chat History",
+                content:
+                  "Chats are stored in MongoDB so you can access them anytime.",
+              },
+              {
+                title: "Third-Party Processing",
+                content:
+                  "Prompts are sent to selected providers. Their policies apply to your data.",
+              },
+            ].map(({ title, content }, index) => (
+              <div
+                key={index}
+                className="p-5 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] transition"
+              >
+                <h3 className="text-lg font-medium text-white mb-1">{title}</h3>
+                <p className="text-sm text-gray-400">{content}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <footer className="pt-12 pb-8 text-center text-xs text-muted-foreground/50">
-          &copy; {new Date().getFullYear()} NxtAi. All rights reserved.
+        {/* Footer */}
+        <footer className="pt-10 text-center text-xs text-gray-500">
+          © {new Date().getFullYear()} NxtAi. All rights reserved.
         </footer>
       </div>
     </div>
