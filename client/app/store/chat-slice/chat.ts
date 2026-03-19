@@ -57,10 +57,11 @@ const stripBase64FromChats = (chats: Chat[]): Chat[] => {
     ...chat,
     messages: chat.messages.map((msg) => ({
       ...msg,
-      content: msg.content.replace(
-        /data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+/g,
-        "[image]",
-      ),
+      content: msg.content
+        // Strip image base64
+        .replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+/g, "[image]")
+        // ✅ Strip PDF base64 from chat history
+        .replace(/^\[pdf-ready\|\|\|[A-Za-z0-9+/=]+\|\|\|(.+)\]$/s, "[pdf:$1]"),
     })),
   }));
 };

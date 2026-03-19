@@ -205,6 +205,55 @@ export async function POST(req: NextRequest) {
     }
 
     // ─────────────────────────────────────────
+    // /pdf prefix — generate PDF document
+    // ─────────────────────────────────────────
+    if (userMessageContent.startsWith("/pdf ")) {
+      const topic = userMessageContent.replace("/pdf ", "").trim();
+
+      const deductRes = await fetch(`${backendUrl}/api/auth/deduct`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `token=${token}`,
+        },
+        body: JSON.stringify({ feature: "chat" }),
+      });
+
+      const { remainingCredits } = await deductRes
+        .json()
+        .catch(() => ({ remainingCredits: null }));
+
+      const pdfRes = await fetch(`${req.nextUrl.origin}/api/generate-pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `token=${token}`,
+        },
+        body: JSON.stringify({
+          topic,
+          // ✅ Pass full chat history so AI uses actual conversation
+          messages,
+        }),
+      });
+
+      if (!pdfRes.ok) {
+        return NextResponse.json(
+          { error: "PDF generation failed" },
+          { status: 500 },
+        );
+      }
+
+      const pdfBuffer = await pdfRes.arrayBuffer();
+      const base64 = Buffer.from(pdfBuffer).toString("base64");
+
+      return NextResponse.json({
+        reply: `[pdf-ready|||${base64}|||${topic}]`,
+        remainingCredits,
+        type: "pdf",
+      });
+    }
+
+    // ─────────────────────────────────────────
     // Default — text chat (call AI first, deduct after)
     // ─────────────────────────────────────────
     const selectedModel = model || "llama-3.3-70b-versatile";

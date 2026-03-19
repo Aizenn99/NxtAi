@@ -12,10 +12,12 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "fontkit": "^2.0.4",
     "groq-sdk": "^1.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.23.0",
     "multer": "^2.0.2",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "pdf-lib": "^1.17.1"
   }
 }

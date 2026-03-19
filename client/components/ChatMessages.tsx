@@ -65,6 +65,66 @@ function PersistentImage({
 }
 
 // ─────────────────────────────────────────────────────────────
+// PDF download button — shown when PDF is freshly generated
+// ─────────────────────────────────────────────────────────────
+function PDFDownload({ content }: { content: string }) {
+  const pdfMatch = content.match(
+    /^\[pdf-ready\|\|\|([\s\S]+?)\|\|\|([\s\S]+)\]$/s,
+  );
+  if (!pdfMatch) return null;
+
+  const base64 = pdfMatch[1];
+  const topic = pdfMatch[2];
+
+  const handleDownload = () => {
+    const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${topic.slice(0, 30).replace(/\s+/g, "_")}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="flex flex-col gap-3 my-2">
+      <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 max-w-sm">
+        <span className="text-2xl">📄</span>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-white">{topic}</p>
+          <p className="text-xs text-gray-400">PDF document ready</p>
+        </div>
+      </div>
+      <button
+        onClick={handleDownload}
+        className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-xl transition max-w-fit"
+      >
+        ↓ Download PDF
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// PDF stripped — shown after refresh when base64 is cleared
+// ─────────────────────────────────────────────────────────────
+function PDFStripped({ topic }: { topic: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 max-w-sm">
+      <span className="text-2xl">📄</span>
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium text-white">{topic}</p>
+        <p className="text-xs text-gray-400">
+          Type <code className="bg-white/10 px-1 rounded">/pdf {topic}</code> to
+          regenerate
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Code block with syntax highlighting + copy button
 // ─────────────────────────────────────────────────────────────
 function CodeBlock({ code, lang }: { code: string; lang?: string }) {
@@ -115,11 +175,35 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Typing indicator animation
+// ─────────────────────────────────────────────────────────────
+function TypingIndicator() {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <Bot className="w-4 h-4 text-white" />
+      </div>
+      <div className="bg-muted/40 border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
+        <div className="flex items-center gap-1.5 h-5">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Renders assistant message content
-// Handles: persisted images, base64 images, videos, code, text
+// Handles: images, PDFs, videos, code blocks, inline code, text
 // ─────────────────────────────────────────────────────────────
 function AssistantContent({ content }: { content: string }) {
-  // ✅ New format: [image|||ID|||prompt] — loads from MongoDB on refresh
+  // ✅ Persisted image — new format [image|||ID|||prompt]
   const persistedMatchNew = content.match(
     /^\[image\|\|\|([a-f0-9]+)\|\|\|([\s\S]+)\]$/,
   );
@@ -132,7 +216,7 @@ function AssistantContent({ content }: { content: string }) {
     );
   }
 
-  // ✅ Old format fallback: [image:ID:prompt] — handles already saved messages
+  // ✅ Persisted image — old format fallback [image:ID:prompt]
   const persistedMatchOld = content.match(
     /^\[image:([a-f0-9]{24}):([\s\S]+)\]$/,
   );
@@ -145,7 +229,7 @@ function AssistantContent({ content }: { content: string }) {
     );
   }
 
-  // ✅ Base64 image — in memory before refresh
+  // ✅ Base64 image — still in memory before refresh
   const base64Match = content.match(/^!\[(.+?)\]\((data:image[^)]+)\)$/);
   if (base64Match) {
     return (
@@ -163,7 +247,18 @@ function AssistantContent({ content }: { content: string }) {
     );
   }
 
-  // ✅ Regular text with code blocks, inline code, images, and videos
+  // ✅ PDF freshly generated — show download button
+  if (content.startsWith("[pdf-ready|||")) {
+    return <PDFDownload content={content} />;
+  }
+
+  // ✅ PDF stripped after refresh — show regenerate hint
+  const pdfStrippedMatch = content.match(/^\[pdf:(.+)\]$/);
+  if (pdfStrippedMatch) {
+    return <PDFStripped topic={pdfStrippedMatch[1]} />;
+  }
+
+  // ✅ Regular text — code blocks, inline code, images, videos
   const parts = content.split(/(```[\s\S]*?```)/g);
 
   return (
@@ -228,30 +323,6 @@ function AssistantContent({ content }: { content: string }) {
         );
       })}
     </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Typing indicator animation
-// ─────────────────────────────────────────────────────────────
-function TypingIndicator() {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-        <Bot className="w-4 h-4 text-white" />
-      </div>
-      <div className="bg-muted/40 border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
-        <div className="flex items-center gap-1.5 h-5">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
-              style={{ animationDelay: `${i * 0.15}s` }}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
   );
 }
 
