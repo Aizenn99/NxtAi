@@ -3,7 +3,7 @@ import { CohereClientV2 } from "cohere-ai";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model } = await req.json();
+    const { messages, model, chatTitle } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "Invalid messages" }, { status: 400 });
@@ -207,8 +207,12 @@ export async function POST(req: NextRequest) {
     // ─────────────────────────────────────────
     // /pdf prefix — generate PDF document
     // ─────────────────────────────────────────
-    if (userMessageContent.startsWith("/pdf ")) {
-      const topic = userMessageContent.replace("/pdf ", "").trim();
+    if (
+      userMessageContent === "/pdf" ||
+      userMessageContent.startsWith("/pdf ")
+    ) {
+      const customTopic = userMessageContent.replace("/pdf", "").trim();
+      const topic = customTopic || chatTitle || "Chat Document";
 
       const deductRes = await fetch(`${backendUrl}/api/auth/deduct`, {
         method: "POST",
@@ -229,11 +233,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
           Cookie: `token=${token}`,
         },
-        body: JSON.stringify({
-          topic,
-          // ✅ Pass full chat history so AI uses actual conversation
-          messages,
-        }),
+        body: JSON.stringify({ topic, messages }),
       });
 
       if (!pdfRes.ok) {

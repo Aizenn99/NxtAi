@@ -50,7 +50,7 @@ const initialState: ChatState = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Strip base64 images before saving to localStorage or MongoDB
+// Strip base64 images + PDF before saving to localStorage/MongoDB
 // ─────────────────────────────────────────────────────────────
 const stripBase64FromChats = (chats: Chat[]): Chat[] => {
   return chats.map((chat) => ({
@@ -60,8 +60,11 @@ const stripBase64FromChats = (chats: Chat[]): Chat[] => {
       content: msg.content
         // Strip image base64
         .replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+/g, "[image]")
-        // ✅ Strip PDF base64 from chat history
-        .replace(/^\[pdf-ready\|\|\|[A-Za-z0-9+/=]+\|\|\|(.+)\]$/s, "[pdf:$1]"),
+        // Strip PDF base64 — preserve topic for regenerate hint
+        .replace(
+          /^\[pdf-ready\|\|\|[A-Za-z0-9+/=]+\|\|\|([\s\S]+)\]$/s,
+          "[pdf:$1]",
+        ),
     })),
   }));
 };
@@ -219,10 +222,7 @@ export const generateChatTitle = createAsyncThunk(
       const data = await res.json();
       const title = data.title || message.slice(0, 40);
 
-      // ✅ Update title in state
       dispatch(setChatTitle({ chatId, title }));
-
-      // ✅ Sync updated title to MongoDB
       dispatch(syncChatHistory());
     } catch (err) {
       console.error("Title generation failed:", err);
@@ -283,6 +283,12 @@ export const sendChatMessage = createAsyncThunk(
         body: JSON.stringify({
           messages: fullHistory,
           model: state.chat.selectedModel,
+          // ✅ Fix: use getState() for fresh state — not stale snapshot
+          // This ensures chatTitle reflects the AI-generated title
+          chatTitle:
+            (getState() as { chat: ChatState }).chat.chats.find(
+              (c) => c.id === chatId,
+            )?.title ?? "Chat Document",
         }),
       });
 
@@ -371,7 +377,6 @@ const chatSlice = createSlice({
       const newMsg: Message = { ...message, id: generateId() };
       chat.messages.push(newMsg);
 
-      // ✅ No title logic here — handled by generateChatTitle thunk
       // Backup to localStorage on every message instantly
       backupToLocalStorage(state.chats);
     },
