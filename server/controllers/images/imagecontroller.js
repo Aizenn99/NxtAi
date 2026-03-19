@@ -98,6 +98,39 @@ const generateImage = async (req, res) => {
   }
 };
 
+// Save image from chat route
+const saveImage = async (req, res) => {
+  try {
+    const { prompt, imageUrl, width, height } = req.body;
+    const newImage = await Image.create({
+      userId: req.user.id,
+      prompt,
+      imageUrl,
+      width: width || 512,
+      height: height || 512,
+    });
+    return res.status(201).json({ success: true, image: newImage });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to save image" });
+  }
+};
+
+// Get single image by ID
+const getImageById = async (req, res) => {
+  try {
+    const image = await Image.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+    if (!image) return res.status(404).json({ error: "Image not found" });
+    return res.status(200).json({ success: true, image });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to fetch image" });
+  }
+};
+
+// Add both to exports
+
 // Get All Images (user history)
 const getUserImages = async (req, res) => {
   try {
@@ -135,4 +168,6 @@ module.exports = {
   generateImage,
   getUserImages,
   deleteImage,
+  saveImage,
+  getImageById,
 };

@@ -62,8 +62,8 @@ const SUGGESTIONS = [
 ];
 
 const MODELS = [
-  { id: "llama-3.3-70b-versatile", name: "Groq (Llama 3)" },
-  { id: "cohere", name: "Cohere" },
+  { id: "llama-3.3-70b-versatile", name: "Groq (Fast)" },
+  { id: "cohere", name: "Cohere (Think)" },
   { id: "openrouter", name: "OpenRouter" },
 ];
 

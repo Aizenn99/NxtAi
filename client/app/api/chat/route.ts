@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (userMessageContent.startsWith("/image ")) {
       const prompt = userMessageContent.replace("/image ", "").trim();
 
-      // Deduct credits first for image (costs more)
+      // Deduct credits first for image
       const deductRes = await fetch(`${backendUrl}/api/auth/deduct`, {
         method: "POST",
         headers: {
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Call Hugging Face
+      // Call Hugging Face FLUX
       const hfRes = await fetch(
         "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
         {
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
           headers: {
             Authorization: `Bearer ${hfKey}`,
             "Content-Type": "application/json",
+            Accept: "image/jpeg",
           },
           body: JSON.stringify({
             inputs: prompt,
@@ -88,7 +89,6 @@ export async function POST(req: NextRequest) {
             { status: 401 },
           );
         }
-
         return NextResponse.json(
           { error: "Image generation failed" },
           { status: 500 },
@@ -99,8 +99,43 @@ export async function POST(req: NextRequest) {
       const base64 = Buffer.from(buffer).toString("base64");
       const imageUrl = `data:image/jpeg;base64,${base64}`;
 
+      // ✅ Save image to MongoDB so it persists after refresh
+      let imageId: string | null = null;
+      try {
+        const saveRes = await fetch(`${backendUrl}/api/images/save`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `token=${token}`,
+          },
+          body: JSON.stringify({
+            prompt,
+            imageUrl,
+            width: 512,
+            height: 512,
+          }),
+        });
+
+        if (saveRes.ok) {
+          const saveData = await saveRes.json();
+          imageId = saveData.image._id;
+          console.log("✅ Image saved to MongoDB:", imageId);
+        } else {
+          console.error("❌ Failed to save image:", await saveRes.text());
+        }
+      } catch (e) {
+        console.error("❌ Image save error:", e);
+      }
+
+      // ✅ Use [image:ID:prompt] format so it can reload from DB on refresh
+      // Falls back to base64 if save failed
+      // ✅ Use ||| as separator — avoids conflicts with colons in prompts
+      const reply = imageId
+        ? `[image|||${imageId}|||${prompt}]`
+        : `![${prompt}](${imageUrl})`;
+
       return NextResponse.json({
-        reply: `![${prompt}](${imageUrl})`,
+        reply,
         remainingCredits,
         type: "image",
       });

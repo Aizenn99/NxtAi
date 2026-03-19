@@ -1,17 +1,72 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Message } from "@/app/store/chat-slice/chat";
 import { Bot, Copy, Check } from "lucide-react";
-import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
 }
 
+// ─────────────────────────────────────────────────────────────
+// Loads image from MongoDB by ID — persists across refreshes
+// ─────────────────────────────────────────────────────────────
+function PersistentImage({
+  imageId,
+  prompt,
+}: {
+  imageId: string;
+  prompt: string;
+}) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/images/${imageId}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.image?.imageUrl) setSrc(d.image.imageUrl);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [imageId]);
+
+  if (loading) {
+    return (
+      <div className="w-64 h-64 rounded-xl bg-white/5 animate-pulse border border-white/10" />
+    );
+  }
+
+  if (!src) {
+    return (
+      <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-muted-foreground text-sm max-w-sm">
+        <span>🖼️</span>
+        <span>Image unavailable — check Gallery</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 my-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={prompt}
+        className="rounded-lg max-w-md w-full shadow-lg border border-white/10"
+      />
+      <p className="text-xs text-muted-foreground">Prompt: {prompt}</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Code block with syntax highlighting + copy button
+// ─────────────────────────────────────────────────────────────
 function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -59,8 +114,56 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Renders assistant message content
+// Handles: persisted images, base64 images, videos, code, text
+// ─────────────────────────────────────────────────────────────
 function AssistantContent({ content }: { content: string }) {
-  // Split by code blocks (```lang\n...\n```)
+  // ✅ New format: [image|||ID|||prompt] — loads from MongoDB on refresh
+  const persistedMatchNew = content.match(
+    /^\[image\|\|\|([a-f0-9]+)\|\|\|([\s\S]+)\]$/,
+  );
+  if (persistedMatchNew) {
+    return (
+      <PersistentImage
+        imageId={persistedMatchNew[1]}
+        prompt={persistedMatchNew[2]}
+      />
+    );
+  }
+
+  // ✅ Old format fallback: [image:ID:prompt] — handles already saved messages
+  const persistedMatchOld = content.match(
+    /^\[image:([a-f0-9]{24}):([\s\S]+)\]$/,
+  );
+  if (persistedMatchOld) {
+    return (
+      <PersistentImage
+        imageId={persistedMatchOld[1]}
+        prompt={persistedMatchOld[2]}
+      />
+    );
+  }
+
+  // ✅ Base64 image — in memory before refresh
+  const base64Match = content.match(/^!\[(.+?)\]\((data:image[^)]+)\)$/);
+  if (base64Match) {
+    return (
+      <div className="flex flex-col gap-2 my-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={base64Match[2]}
+          alt={base64Match[1]}
+          className="rounded-lg max-w-md w-full shadow-lg border border-white/10"
+        />
+        <p className="text-xs text-muted-foreground">
+          Prompt: {base64Match[1]}
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ Regular text with code blocks, inline code, images, and videos
   const parts = content.split(/(```[\s\S]*?```)/g);
 
   return (
@@ -72,12 +175,12 @@ function AssistantContent({ content }: { content: string }) {
           const code = lines.slice(1).join("\n");
           return <CodeBlock key={i} code={code} lang={lang || undefined} />;
         }
-        // Render inline `code` spans, line breaks, and images/videos
-        // Split by code or by images
+
         const segments = part.split(/(`[^`]+`|!\[[^\]]*\]\([^)]+\))/g);
         return (
           <p key={i} className="whitespace-pre-wrap leading-relaxed">
             {segments.map((seg, j) => {
+              // Inline code
               if (seg.startsWith("`") && seg.endsWith("`")) {
                 return (
                   <code
@@ -87,11 +190,15 @@ function AssistantContent({ content }: { content: string }) {
                     {seg.slice(1, -1)}
                   </code>
                 );
-              } else if (seg.startsWith("![") && seg.endsWith(")")) {
+              }
+
+              // Inline image or video
+              if (seg.startsWith("![") && seg.endsWith(")")) {
                 const match = seg.match(/!\[([^\]]*)\]\(([^)]+)\)/);
                 if (match) {
                   const alt = match[1];
                   const url = match[2];
+
                   if (alt.startsWith("video:")) {
                     return (
                       <video
@@ -102,6 +209,7 @@ function AssistantContent({ content }: { content: string }) {
                       />
                     );
                   }
+
                   return (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -113,6 +221,7 @@ function AssistantContent({ content }: { content: string }) {
                   );
                 }
               }
+
               return seg;
             })}
           </p>
@@ -122,6 +231,9 @@ function AssistantContent({ content }: { content: string }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Typing indicator animation
+// ─────────────────────────────────────────────────────────────
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-3">
@@ -143,6 +255,9 @@ function TypingIndicator() {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Main ChatMessages component
+// ─────────────────────────────────────────────────────────────
 export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 

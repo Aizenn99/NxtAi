@@ -5,6 +5,8 @@ const {
   generateImage,
   getUserImages,
   deleteImage,
+  saveImage,
+  getImageById,
 } = require("../controllers/images/imagecontroller");
 
 router.post(
@@ -19,6 +21,8 @@ router.post(
   generateImage,
 );
 router.get("/images", authMiddleware, getUserImages);
+router.post("/images/save", authMiddleware, saveImage);
+router.get("/images/:id", authMiddleware, getImageById);
 router.delete("/images/:id", authMiddleware, deleteImage);
 
 module.exports = router;

@@ -17,7 +17,7 @@ const checkCredits = (feature) => async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🧠 Check if 24 hours passed
+    // Check if 24 hours passed
     const now = new Date();
     const lastReset = new Date(user.lastCreditReset);
 
@@ -29,14 +29,8 @@ const checkCredits = (feature) => async (req, res, next) => {
       await user.save();
     }
 
-    // 🔥 Now do atomic deduction
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: req.userId, credits: { $gte: cost } },
-      { $inc: { credits: -cost } },
-      { new: true },
-    );
-
-    if (!updatedUser) {
+    // Check if user has sufficient credits
+    if (user.credits < cost) {
       return res.status(403).json({
         message: "Insufficient credits",
         required: cost,
@@ -44,7 +38,11 @@ const checkCredits = (feature) => async (req, res, next) => {
       });
     }
 
-    req.remainingCredits = updatedUser.credits;
+    // Update credits separately
+    user.credits -= cost;
+    await user.save();
+
+    req.remainingCredits = user.credits;
     next();
   } catch (error) {
     console.error("Credit check error:", error.message);
