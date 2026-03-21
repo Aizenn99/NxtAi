@@ -17,7 +17,9 @@ export const generateImage = createAsyncThunk(
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.error || "Image generation failed",
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Image generation failed",
       );
     }
   },
@@ -35,7 +37,9 @@ export const fetchUserImages = createAsyncThunk(
       return res.data.images;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.error || "Failed to fetch images",
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to fetch images",
       );
     }
   },
@@ -53,7 +57,9 @@ export const deleteImage = createAsyncThunk(
       return imageId;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error.response?.data?.error || "Failed to delete image",
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to delete image",
       );
     }
   },
